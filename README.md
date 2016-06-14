@@ -2,7 +2,7 @@
 A Node.js module to create batch requests for the Gmail REST API and return them as [Highland.js](http://highlandjs.org) streams.
 
 ## Google API Batch Requests
-The official Google API Node.js Client [google/google-api-nodejs-client](https://github.com/google/google-api-nodejs-client) is missing batch processing. For processing large amounts of email through the Gmail API 
+The official Google API Node.js Client [google/google-api-nodejs-client](https://github.com/google/google-api-nodejs-client) is missing batch processing. For processing large amounts of email through the Gmail API, batch processing greatly improves the throughput.
 
 ## Issues, Features and Bugs
 The module isn't very universal yet. Pull requests are welcome.
@@ -16,10 +16,11 @@ This library is distributed on `npm`. In order to add it as a dependency, run th
 $ npm install gmail-batch-stream --save
 ```
 
-You will also need the official Google APIs Node.js Client
+You will also need the official Google APIs Node.js Client and Highland.js to run the example below.
 
 ``` sh
 $ npm install googleapis --save
+$ npm install highland --save
 ```
 
 ## Usage
@@ -45,7 +46,6 @@ var gmail = GBS.gmail(); //return pseudo gmail api client (drop-in replacement f
 var messageIdStream = _h([MESSAGEID1, MESSAGEID2]); //stream of message ids to be loaded
 
 GBS.init(authClient, function(err) {
-
   messageIdStream
   .map(function(messageId) {
     return gmail.users.messages.get({ userId: 'me', id: messageId, format: 'metadata' });
