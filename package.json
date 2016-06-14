@@ -1,0 +1,28 @@
+{
+  "name": "gmail-batch-stream",
+  "version": "0.0.1",
+  "description": "Streaming interface to Gmail API using batch requests",
+  "main": "index.js",
+  "dependencies": {
+    "googleapis": "^8.0.0",
+    "highland": "^2.8.1",
+    "http-string-parser": "0.0.5",
+    "query-string": "^4.2.1",
+    "request": "^2.62.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "gmail",
+    "batch",
+    "stream",
+    "google",
+    "api"
+  ],
+  "bugs": {
+    "url": "https://github.com/zoellner/gmail-batch-stream/issues"
+  },
+  "author": "Andreas Zoellner",
+  "license": "MIT"
+}
