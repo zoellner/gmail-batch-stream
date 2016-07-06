@@ -1,0 +1,10 @@
+{
+    "preset": "airbnb",
+    "excludeFiles": ["node_modules/**"],
+    "requirePaddingNewLinesAfterBlocks": null,
+    "requirePaddingNewLinesBeforeLineComments": null,
+    "requireTrailingComma": null,
+    "requireSpacesInAnonymousFunctionExpression": null,
+    "requireSpacesInsideObjectBrackets": null,
+    "maximumLineLength": null
+}

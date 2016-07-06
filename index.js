@@ -31,6 +31,7 @@ var queryString = require('query-string');
 var parser = require('http-string-parser');
 var Google = require('googleapis');
 var _h = require('highland');
+var debug = require('debug')('gmail-batch-stream');
 
 var GmailBatchStream = function() {
   this.userQuota = 250;
@@ -39,6 +40,7 @@ var GmailBatchStream = function() {
 
 GmailBatchStream.prototype.init = function(authClient, callback) {
   var _this = this;
+  debug('Gmail Batch Stream initialized');
   authClient.getAccessToken(function(err, token) {
     if (err) {return callback(err);}
     if (!token) {return callback(new Error('can\'t get token from authClient'));}
@@ -94,7 +96,7 @@ GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize) {
       var collect = '';
       var firstString = true;
       var boundary;
-      return s.consume(function (err, x, push, next) {
+      return s.consume(function(err, x, push, next) {
         if (err) {
           push(err);
           next();
@@ -154,6 +156,7 @@ GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize) {
       parsed.contentId = m[1];
     }
     if (parsed.body && parsed.body.indexOf('--batch') > 0) {
+      debug('Invalid HTTP response', JSON.stringify(parsed.body));
       throw new Error('Invalid HTTP response');
     }
     return parsed;
