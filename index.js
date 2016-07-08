@@ -101,6 +101,21 @@ GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize) {
           push(err);
           next();
         } else if (x === _h.nil) {
+          //check if remaining collect contains boundary marker. If it does, remove it is the last one.
+          if (boundary && collect.indexOf(boundary) > -1) {
+            // remove trailing line breaks, then remove last line if it is the boundary marker
+            collect = collect.replace(/\s+$/g, '');
+            var lines = collect.split('\r\n');
+            var last = lines.pop();
+            if (last.indexOf(boundary) > -1) {
+              //last line contains boundary, return other lines
+              collect = lines.join('\r\n');
+            } else {
+              //last line was not the boundary, add line back and return
+              collect = lines.concat([last]).join('\r\n');
+            }
+          }
+
           if (collect && collect.length > 0 && collect.trim() !== '--') {
             //remaining part of collect is more than just the remainder -- after the last boundary
             push(null, collect);
