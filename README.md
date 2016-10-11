@@ -30,22 +30,23 @@ Example: Take a stream of message ids and load message headers in batches of 100
 var _h = require('highland');
 // Setup Google Auth Client
 var google = require('googleapis');
-var OAuth2 = google.auth.OAuth2;
-var authClient = new OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URL);
 
-authClient.setCredentials({
-  access_token: ACCESS_TOKEN,
-  refresh_token: REFRESH_TOKEN,
-  expiry_date: true //hack to make sure token is refreshed when necessary
-});
+// deprecated: old version with async initialization
+// var OAuth2 = google.auth.OAuth2;
+// var authClient = new OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URL);
+// authClient.setCredentials({
+//   access_token: ACCESS_TOKEN,
+//   refresh_token: REFRESH_TOKEN,
+//   expiry_date: true //hack to make sure token is refreshed when necessary
+// });
 
 // Setup Gmail Batch Stream
-var GBS = new GmailBatchStream(); //create new instance of GmailBatchStream
+var GBS = new GmailBatchStream(ACCESS_TOKEN); //create new instance of GmailBatchStream with provided access token
 var gmail = GBS.gmail(); //return pseudo gmail api client (drop-in replacement for official Gmail API client)
 
 var messageIdStream = _h([MESSAGEID1, MESSAGEID2]); //stream of message ids to be loaded
 
-GBS.init(authClient, function(err) {
+// GBS.init(authClient, function(err) { // old version with async initialization
   messageIdStream
   .map(function(messageId) {
     return gmail.users.messages.get({ userId: 'me', id: messageId, format: 'metadata' });
@@ -53,7 +54,7 @@ GBS.init(authClient, function(err) {
   .pipe(GBS.pipeline(100, 1)) //Run in batches of 100. Use quota of 1 (for users.messages.get).
   .tap(_h.log)
   .done();
-});
+// });
 ```
 
 ## Acknowledgement

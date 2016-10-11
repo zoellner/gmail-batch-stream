@@ -33,9 +33,10 @@ var Google = require('googleapis');
 var _h = require('highland');
 var debug = require('debug')('gmail-batch-stream');
 
-var GmailBatchStream = function() {
+var GmailBatchStream = function(accessToken) {
   this.userQuota = 250;
   this.parallelRequests = 10;
+  this.token = accessToken;
 };
 
 GmailBatchStream.prototype.init = function(authClient, callback) {
