@@ -5,11 +5,11 @@
   "main": "index.js",
   "dependencies": {
     "debug": "^2.2.0",
-    "googleapis": "^8.0.0",
-    "highland": "^2.8.1",
+    "googleapis": "^14.0.0",
+    "highland": "^2.10.0",
     "http-string-parser": "0.0.5",
-    "query-string": "^4.2.1",
-    "request": "^2.62.0"
+    "query-string": "^4.2.3",
+    "request": "^2.75.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
