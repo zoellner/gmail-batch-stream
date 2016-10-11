@@ -1,6 +1,6 @@
 {
   "name": "gmail-batch-stream",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "Streaming interface to Gmail API using batch requests",
   "main": "index.js",
   "dependencies": {
@@ -26,8 +26,8 @@
   },
   "author": "Andreas Zoellner",
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/zoellner/gmail-batch-stream.git"
+    "type": "git",
+    "url": "https://github.com/zoellner/gmail-batch-stream.git"
   },
   "license": "MIT"
 }
