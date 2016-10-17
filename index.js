@@ -59,10 +59,11 @@ GmailBatchStream.prototype.gmail = function() {
   });
 };
 
-GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize) {
+GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize, filterErrors) {
   var _this = this;
   _this.batchSize = batchSize || 100;
   _this.quotaSize = quotaSize || 1;
+  _this.filterErrors = filterErrors || false;
 
   var mapToMultipartRequest = function(batch) {
     if (!Array.isArray(batch)) {
@@ -178,13 +179,13 @@ GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize) {
     return parsed;
   };
 
-  var processingPipeline = function() {
+  var processingPipeline = function(filterErrors) {
     return _h.pipeline(
       _h.invoke('toString', ['utf8']),
       _h.through(parseMultiPart()),
       _h.map(parseHttpResponse),
       _h.map(function(doc) {
-        if (!(doc && doc.statusCode && parseInt(doc.statusCode, 10) === 200)) {
+        if (filterErrors && !(doc && doc.statusCode && parseInt(doc.statusCode, 10) === 200)) {
           return null;
         }
         return doc && doc.body;
@@ -199,7 +200,7 @@ GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize) {
     _h.ratelimit(_this.userQuota / _this.quotaSize / _this.batchSize, 1000), //quota per user is 250 quota units/second
     _h.map(mapToMultipartRequest),
     _h.map(function(batch) {
-      return _h(request(batch).pipe(processingPipeline()));
+      return _h(request(batch).pipe(processingPipeline(_this.filterErrors)));
     }),
     _h.mergeWithLimit(_this.parallelRequests)
   );
