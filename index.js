@@ -1,6 +1,6 @@
 /*
   The MIT License (MIT)
-  Copyright (c) 2016 Andreas Zoellner
+  Copyright (c) 2016-2017 Andreas Zoellner
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -26,21 +26,21 @@
 
 'use strict';
 
-var request = require('request');
-var queryString = require('query-string');
-var parser = require('http-string-parser');
-var Google = require('googleapis');
-var _h = require('highland');
-var debug = require('debug')('gmail-batch-stream');
+const request = require('request');
+const queryString = require('query-string');
+const parser = require('http-string-parser');
+const Google = require('googleapis');
+const _h = require('highland');
+const debug = require('debug')('gmail-batch-stream');
 
-var GmailBatchStream = function(accessToken) {
+const GmailBatchStream = function(accessToken) {
   this.userQuota = 250;
   this.parallelRequests = 10;
   this.token = accessToken;
 };
 
 GmailBatchStream.prototype.init = function(authClient, callback) {
-  var _this = this;
+  const _this = this;
   debug('Gmail Batch Stream initialized');
   authClient.getAccessToken(function(err, token) {
     if (err) {return callback(err);}
@@ -53,23 +53,22 @@ GmailBatchStream.prototype.init = function(authClient, callback) {
 // pseudo gmail api interface that returns the request options instead of executing the request
 GmailBatchStream.prototype.gmail = function() {
   return Google.gmail({version: 'v1', auth: {
-    request: function(options, callback) {
-      return options;
-    }}
+      request: options => options
+    }
   });
 };
 
 GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize, filterErrors) {
-  var _this = this;
+  const _this = this;
   _this.batchSize = batchSize || 100;
   _this.quotaSize = quotaSize || 1;
   _this.filterErrors = filterErrors || false;
 
-  var mapToMultipartRequest = function(batch) {
+  const mapToMultipartRequest = function(batch) {
     if (!Array.isArray(batch)) {
       batch = [batch];
     }
-    var batchRequestOptions = {
+    const batchRequestOptions = {
       url: 'https://www.googleapis.com/batch',
       method: 'POST',
       headers: {
@@ -77,7 +76,7 @@ GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize, filterError
         Authorization: 'Bearer ' + _this.token
       },
       multipart: batch.map(function(request, index) {
-        var multipartRequest = {
+        const multipartRequest = {
           'Content-Type': 'application/http',
           'Content-ID': '<item-' + index + '>', //mark request with index (used below to extract response id)
           body: request.method + ' ' + request.url + (Object.keys(request.qs).length ? '?' + queryString.stringify(request.qs) : '') + '\n'
@@ -93,60 +92,58 @@ GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize, filterError
     return batchRequestOptions;
   };
 
-  var parseMultiPart = function(s) {
-    return function(s) {
-      var collect = '';
-      var firstString = true;
-      var boundary;
-      return s.consume(function(err, x, push, next) {
-        if (err) {
-          push(err);
-          next();
-        } else if (x === _h.nil) {
-          //check if remaining collect contains boundary marker. If it does, remove it is the last one.
-          if (boundary && collect.indexOf(boundary) > -1) {
-            // remove trailing line breaks, then remove last line if it is the boundary marker
-            collect = collect.replace(/\s+$/g, '');
-            var lines = collect.split('\r\n');
-            var last = lines.pop();
-            if (last.indexOf(boundary) > -1) {
-              //last line contains boundary, return other lines
-              collect = lines.join('\r\n');
-            } else {
-              //last line was not the boundary, add line back and return
-              collect = lines.concat([last]).join('\r\n');
-            }
-          }
-
-          if (collect && collect.length > 0 && collect.trim() !== '--') {
-            //remaining part of collect is more than just the remainder -- after the last boundary
-            push(null, collect);
-          }
-
-          push(null, _h.nil);
-        } else {
-          collect += x;
-          if (firstString) {
-            var lines = collect.split('\r\n');
-            if (lines.length > 1) {
-              firstString = false;
-              boundary = lines[0];
-              collect = collect.slice(boundary.length).replace(/^\s+/g, ''); //start after boundary, remove leading line break
-            }
+  const parseMultiPart = () => function(s) {
+    let collect = '';
+    let firstString = true;
+    let boundary;
+    return s.consume(function(err, x, push, next) {
+      if (err) {
+        push(err);
+        next();
+      } else if (x === _h.nil) {
+        //check if remaining collect contains boundary marker. If it does, remove it is the last one.
+        if (boundary && collect.indexOf(boundary) > -1) {
+          // remove trailing line breaks, then remove last line if it is the boundary marker
+          collect = collect.replace(/\s+$/g, '');
+          const lines = collect.split('\r\n');
+          const last = lines.pop();
+          if (last.indexOf(boundary) > -1) {
+            //last line contains boundary, return other lines
+            collect = lines.join('\r\n');
           } else {
-            var index = collect.indexOf(boundary);
-            while (index > -1) {
-              var completeBlock = collect.slice(0, index);
-              push(null, completeBlock);
-              collect = collect.slice(index + boundary.length).replace(/^\s+/g, '');;
-              index = collect.indexOf(boundary);
-            }
+            //last line was not the boundary, add line back and return
+            collect = lines.concat([last]).join('\r\n');
           }
-
-          next();
         }
-      });
-    };
+
+        if (collect && collect.length > 0 && collect.trim() !== '--') {
+          //remaining part of collect is more than just the remainder -- after the last boundary
+          push(null, collect);
+        }
+
+        push(null, _h.nil);
+      } else {
+        collect += x;
+        if (firstString) {
+          const lines = collect.split('\r\n');
+          if (lines.length > 1) {
+            firstString = false;
+            boundary = lines[0];
+            collect = collect.slice(boundary.length).replace(/^\s+/g, ''); //start after boundary, remove leading line break
+          }
+        } else {
+          let index = collect.indexOf(boundary);
+          while (index > -1) {
+            const completeBlock = collect.slice(0, index);
+            push(null, completeBlock);
+            collect = collect.slice(index + boundary.length).replace(/^\s+/g, '');
+            index = collect.indexOf(boundary);
+          }
+        }
+
+        next();
+      }
+    });
   };
 
   //response has following format:
@@ -160,15 +157,15 @@ GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize, filterError
   // Expires: Date
   // Cache-Control: private, max-age=0
   // Content-Length: Number
-  var parseHttpResponse = function(response) {
-    var lines = response.split('\r\n');
+  const parseHttpResponse = function(response) {
+    const lines = response.split('\r\n');
     if (lines.length < 3) {
       return;
     }
 
     //the first three lines are the header, the rest has the format of a HTTP response
-    var parsed = parser.parseResponse(lines.slice(3).join('\r\n'));
-    var m = lines[1].match(/Content-ID: <response-item-(\d)>/); //extract id from Content-ID
+    const parsed = parser.parseResponse(lines.slice(3).join('\r\n'));
+    const m = lines[1].match(/Content-ID: <response-item-(\d)>/); //extract id from Content-ID
     if (m && m.length > 1) {
       parsed.contentId = m[1];
     }
@@ -179,7 +176,7 @@ GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize, filterError
     return parsed;
   };
 
-  var processingPipeline = function(filterErrors) {
+  const processingPipeline = function(filterErrors) {
     return _h.pipeline(
       _h.invoke('toString', ['utf8']),
       _h.through(parseMultiPart()),
@@ -199,9 +196,7 @@ GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize, filterError
     _h.batch(_this.batchSize),
     _h.ratelimit(_this.userQuota / _this.quotaSize / _this.batchSize, 1000), //quota per user is 250 quota units/second
     _h.map(mapToMultipartRequest),
-    _h.map(function(batch) {
-      return _h(request(batch).pipe(processingPipeline(_this.filterErrors)));
-    }),
+    _h.map(batch => _h(request(batch).pipe(processingPipeline(_this.filterErrors)))),
     _h.mergeWithLimit(_this.parallelRequests)
   );
 
