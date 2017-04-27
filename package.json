@@ -12,7 +12,8 @@
     "request": "^2.81.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "$(npm bin)/jshint --reporter=node_modules/jshint-stylish ."
   },
   "keywords": [
     "gmail",
@@ -29,5 +30,9 @@
     "type": "git",
     "url": "https://github.com/zoellner/gmail-batch-stream.git"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "jshint": "^2.9.4",
+    "jshint-stylish": "^2.2.1"
+  }
 }
