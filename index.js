@@ -31,11 +31,26 @@ const queryString = require('query-string');
 const parser = require('http-string-parser');
 const Google = require('googleapis');
 const _h = require('highland');
+const _ = require('lodash');
 const debug = require('debug')('gmail-batch-stream');
 
-const GmailBatchStream = function(accessToken) {
-  this.userQuota = 250;
-  this.parallelRequests = 10;
+const RateLimiter = require('./utils/rateLimiter');
+
+const GmailBatchStream = function(accessToken, options) {
+  //default quota is 25,000 queries per 100 sec per user
+  const defaults = {
+    userQuota: 25000,
+    userQuotaTime: 100000,
+    parallelRequests: 10
+  };
+
+  options = options || {};
+
+  _.defaults(options, defaults);
+
+  this.userQuota = options.userQuota;
+  this.userQuotaTime = options.userQuotaTime;
+  this.parallelRequests = options.parallelRequests;
   this.token = accessToken;
 };
 
@@ -192,9 +207,13 @@ GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize, filterError
     );
   };
 
+  let rl = new RateLimiter(_this.userQuota / _this.quotaSize, _this.userQuotaTime);
+
   return _h.pipeline(
     _h.batch(_this.batchSize),
-    _h.ratelimit(_this.userQuota / _this.quotaSize / _this.batchSize, 1000), //quota per user is 250 quota units/second
+    _h.flatMap(_h.wrapCallback(function(doc, callback) {
+      rl.getToken(() => callback(null, doc));
+    })),
     _h.map(mapToMultipartRequest),
     _h.map(batch => _h(request(batch).pipe(processingPipeline(_this.filterErrors)))),
     _h.mergeWithLimit(_this.parallelRequests)

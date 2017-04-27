@@ -8,6 +8,7 @@
     "googleapis": "^19.0.0",
     "highland": "^2.10.5",
     "http-string-parser": "0.0.5",
+    "lodash": "^4.17.4",
     "query-string": "^4.3.4",
     "request": "^2.81.0"
   },
