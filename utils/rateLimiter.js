@@ -36,10 +36,10 @@ module.exports = class RateLimiter {
   }
 
   getToken(callback) {
-    return _this.getTokens(1, callback);
+    return this.getTokens(1, callback);
   }
 
   checkToken(callback) {
-    return _this.checkTokens(1, callback);
+    return this.checkTokens(1, callback);
   }
 };
