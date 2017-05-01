@@ -52,6 +52,7 @@ const GmailBatchStream = function(accessToken, options) {
   this.userQuotaTime = options.userQuotaTime;
   this.parallelRequests = options.parallelRequests;
   this.token = accessToken;
+  this.rl = new RateLimiter(this.userQuota, this.userQuotaTime);
 };
 
 GmailBatchStream.prototype.init = function(authClient, callback) {
@@ -207,12 +208,10 @@ GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize, filterError
     );
   };
 
-  let rl = new RateLimiter(_this.userQuota / _this.quotaSize, _this.userQuotaTime);
-
   return _h.pipeline(
     _h.batch(_this.batchSize),
     _h.flatMap(_h.wrapCallback(function(doc, callback) {
-      rl.getToken(() => callback(null, doc));
+      _this.rl.getTokens(_this.quotaSize, () => callback(null, doc));
     })),
     _h.map(mapToMultipartRequest),
     _h.map(batch => _h(request(batch).pipe(processingPipeline(_this.filterErrors)))),
