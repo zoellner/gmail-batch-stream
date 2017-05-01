@@ -45,7 +45,7 @@ const messageIdStream = _h([gmail.users.messages.list({userId: 'me'})])
 
 messageIdStream
 .map(messageId => gmail.users.messages.get({ userId: 'me', id: messageId, format: 'metadata' }))
-.pipe(GBS.pipeline(100, 1)) //Run in batches of 100. Use quota of 1 (for users.messages.get).
+.pipe(GBS.pipeline(100, 5)) //Run in batches of 100. Use quota of 5 (for users.messages.get).
 .tap(_h.log)
 .done(() => {
   console.log('done');
