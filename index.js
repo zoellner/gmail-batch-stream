@@ -211,7 +211,7 @@ GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize, filterError
   return _h.pipeline(
     _h.batch(_this.batchSize),
     _h.flatMap(_h.wrapCallback(function(doc, callback) {
-      _this.rl.getTokens(_this.quotaSize, () => callback(null, doc));
+      _this.rl.getTokens(_this.quotaSize * _this.batchSize, () => callback(null, doc));
     })),
     _h.map(mapToMultipartRequest),
     _h.map(batch => _h(request(batch).pipe(processingPipeline(_this.filterErrors)))),
