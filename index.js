@@ -55,6 +55,7 @@ const GmailBatchStream = function(accessToken, options) {
   this.rl = new RateLimiter(this.userQuota, this.userQuotaTime);
 };
 
+// init function is obsolete and will be removed in future versions
 GmailBatchStream.prototype.init = function(authClient, callback) {
   const _this = this;
   debug('Gmail Batch Stream initialized');
@@ -80,7 +81,7 @@ GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize, filterError
   _this.quotaSize = quotaSize || 1;
   _this.filterErrors = filterErrors || false;
 
-  const mapToMultipartRequest = function(batch) {
+  const mapToMultipartRequest = (batch) => {
     if (!Array.isArray(batch)) {
       batch = [batch];
     }
@@ -89,12 +90,12 @@ GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize, filterError
       method: 'POST',
       headers: {
         'Content-Type': 'multipart/mixed',
-        Authorization: 'Bearer ' + _this.token
+        Authorization: 'Bearer ' + _this.token //applies to each request in the batch
       },
-      multipart: batch.map(function(request, index) {
+      multipart: batch.map((request, index) => {
         const multipartRequest = {
           'Content-Type': 'application/http',
-          'Content-ID': '<item-' + index + '>', //mark request with index (used below to extract response id)
+          'Content-ID': `<item-${index}>`, //mark request with index (used below to extract response id)
           body: request.method + ' ' + request.url + (Object.keys(request.qs).length ? '?' + queryString.stringify(request.qs) : '') + '\n'
         };
 
@@ -117,7 +118,7 @@ GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize, filterError
         push(err);
         next();
       } else if (x === _h.nil) {
-        //check if remaining collect contains boundary marker. If it does, remove it is the last one.
+        //check if remaining collect contains boundary marker. If it does, remove if it is the last line.
         if (boundary && collect.indexOf(boundary) > -1) {
           // remove trailing line breaks, then remove last line if it is the boundary marker
           collect = collect.replace(/\s+$/g, '');
@@ -201,10 +202,23 @@ GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize, filterError
         if (filterErrors && !(doc && doc.statusCode && parseInt(doc.statusCode, 10) === 200)) {
           return null;
         }
-        return doc && doc.body;
+        const body = doc && doc.body;
+        if (!body) {return null;}
+
+        let parsed = {};
+        try {
+          parsed = JSON.parse(body);
+        } catch (e) {
+          debug('Invalid JSON', body);
+          if (filterErrors) {
+            return null;
+          }
+          parsed.body = body;
+          parsed.error = e.toString();
+        }
+        return parsed;
       }),
-      _h.compact(),
-      _h.map(JSON.parse)
+      _h.compact()
     );
   };
 
