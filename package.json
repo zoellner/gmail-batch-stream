@@ -4,17 +4,17 @@
   "description": "Streaming interface to Gmail API using batch requests",
   "main": "index.js",
   "dependencies": {
-    "debug": "^2.6.5",
-    "googleapis": "^19.0.0",
-    "highland": "^2.10.5",
-    "http-string-parser": "0.0.5",
+    "debug": "^2.6.8",
+    "googleapis": "^20.0.1",
+    "highland": "^2.11.0",
+    "http-string-parser": "0.0.6",
     "lodash": "^4.17.4",
     "query-string": "^4.3.4",
     "request": "^2.81.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "$(npm bin)/jshint --reporter=node_modules/jshint-stylish ."
+    "lint": "$(npm bin)/eslint . --quiet"
   },
   "keywords": [
     "gmail",
@@ -33,7 +33,6 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "jshint": "^2.9.4",
-    "jshint-stylish": "^2.2.1"
+    "eslint": "^4.1.1"
   }
 }
