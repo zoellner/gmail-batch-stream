@@ -1,24 +1,4 @@
 /*
-  The MIT License (MIT)
-  Copyright (c) 2016-2017 Andreas Zoellner
-  Permission is hereby granted, free of charge, to any person obtaining a copy
-  of this software and associated documentation files (the "Software"), to deal
-  in the Software without restriction, including without limitation the rights
-  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-  copies of the Software, and to permit persons to whom the Software is
-  furnished to do so, subject to the following conditions:
-  The above copyright notice and this permission notice shall be included in all
-  copies or substantial portions of the Software.
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-  SOFTWARE.
-*/
-
-/*
   This module is inspired by the batchelor module by wapisasa and the google-batch module by pradeep-mishra
   gmail-batch-stream follows the gmail batch specs at https://developers.google.com/gmail/api/guides/batch
 
@@ -55,6 +35,7 @@ const GmailBatchStream = function(accessToken, options) {
   this.rl = new RateLimiter(this.userQuota, this.userQuotaTime);
 };
 
+// init function is obsolete and will be removed in future versions
 GmailBatchStream.prototype.init = function(authClient, callback) {
   const _this = this;
   debug('Gmail Batch Stream initialized');
@@ -80,7 +61,7 @@ GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize, filterError
   _this.quotaSize = quotaSize || 1;
   _this.filterErrors = filterErrors || false;
 
-  const mapToMultipartRequest = function(batch) {
+  const mapToMultipartRequest = (batch) => {
     if (!Array.isArray(batch)) {
       batch = [batch];
     }
@@ -89,12 +70,12 @@ GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize, filterError
       method: 'POST',
       headers: {
         'Content-Type': 'multipart/mixed',
-        Authorization: 'Bearer ' + _this.token
+        Authorization: 'Bearer ' + _this.token //applies to each request in the batch
       },
-      multipart: batch.map(function(request, index) {
+      multipart: batch.map((request, index) => {
         const multipartRequest = {
           'Content-Type': 'application/http',
-          'Content-ID': '<item-' + index + '>', //mark request with index (used below to extract response id)
+          'Content-ID': `<item-${index}>`, //mark request with index (used below to extract response id)
           body: request.method + ' ' + request.url + (Object.keys(request.qs).length ? '?' + queryString.stringify(request.qs) : '') + '\n'
         };
 
@@ -117,7 +98,7 @@ GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize, filterError
         push(err);
         next();
       } else if (x === _h.nil) {
-        //check if remaining collect contains boundary marker. If it does, remove it is the last one.
+        //check if remaining collect contains boundary marker. If it does, remove if it is the last line.
         if (boundary && collect.indexOf(boundary) > -1) {
           // remove trailing line breaks, then remove last line if it is the boundary marker
           collect = collect.replace(/\s+$/g, '');
@@ -201,10 +182,23 @@ GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize, filterError
         if (filterErrors && !(doc && doc.statusCode && parseInt(doc.statusCode, 10) === 200)) {
           return null;
         }
-        return doc && doc.body;
+        const body = doc && doc.body;
+        if (!body) {return null;}
+
+        let parsed = {};
+        try {
+          parsed = JSON.parse(body);
+        } catch (e) {
+          debug('Invalid JSON', body);
+          if (filterErrors) {
+            return null;
+          }
+          parsed.body = body;
+          parsed.error = e.toString();
+        }
+        return parsed;
       }),
-      _h.compact(),
-      _h.map(JSON.parse)
+      _h.compact()
     );
   };
 
