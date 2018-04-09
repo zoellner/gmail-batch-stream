@@ -4,13 +4,13 @@
   "description": "Streaming interface to Gmail API using batch requests",
   "main": "index.js",
   "dependencies": {
-    "debug": "^2.6.8",
-    "googleapis": "^20.0.1",
-    "highland": "^2.11.0",
+    "debug": "^2.6.9",
+    "googleapis": "^20.2.0",
+    "highland": "^2.13.0",
     "http-string-parser": "0.0.6",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.5",
     "query-string": "^4.3.4",
-    "request": "^2.81.0"
+    "request": "^2.85.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -33,6 +33,6 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "eslint": "^4.1.1"
+    "eslint": "^4.19.1"
   }
 }
