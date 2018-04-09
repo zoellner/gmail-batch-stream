@@ -66,7 +66,7 @@ GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize, filterError
       batch = [batch];
     }
     const batchRequestOptions = {
-      url: 'https://www.googleapis.com/batch',
+      url: 'https://www.googleapis.com/batch/gmail/v1',
       method: 'POST',
       headers: {
         'Content-Type': 'multipart/mixed',
