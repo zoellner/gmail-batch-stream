@@ -1,7 +1,6 @@
 /*
   This module is inspired by the batchelor module by wapisasa and the google-batch module by pradeep-mishra
   gmail-batch-stream follows the gmail batch specs at https://developers.google.com/gmail/api/guides/batch
-
 */
 
 'use strict';
@@ -9,7 +8,7 @@
 const request = require('request');
 const queryString = require('query-string');
 const parser = require('http-string-parser');
-const Google = require('googleapis');
+const {google} = require('googleapis');
 const _h = require('highland');
 const _ = require('lodash');
 const debug = require('debug')('gmail-batch-stream');
@@ -49,7 +48,7 @@ GmailBatchStream.prototype.init = function(authClient, callback) {
 
 // pseudo gmail api interface that returns the request options instead of executing the request
 GmailBatchStream.prototype.gmail = function() {
-  return Google.gmail({version: 'v1', auth: {
+  return google.gmail({version: 'v1', auth: {
       request: options => options
     }
   });
