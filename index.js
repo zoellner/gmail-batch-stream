@@ -72,6 +72,8 @@ GmailBatchStream.prototype.pipeline = function(batchSize, quotaSize, filterError
         Authorization: 'Bearer ' + _this.token //applies to each request in the batch
       },
       multipart: batch.map((request, index) => {
+        request.qs = request.qs || {};
+        request.json = request.json || {};
         const multipartRequest = {
           'Content-Type': 'application/http',
           'Content-ID': `<item-${index}>`, //mark request with index (used below to extract response id)
