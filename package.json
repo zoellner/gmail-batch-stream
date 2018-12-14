@@ -14,7 +14,10 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "npx eslint ."
+    "lint": "npx eslint .",
+    "preversion": "npm run lint && git flow release start v$npm_package_version",
+    "version": "echo releasing v$npm_package_version",
+    "postversion": "GIT_MERGE_AUTOEDIT=no git flow release finish -m \"v$npm_package_version\" v$npm_package_version"
   },
   "keywords": [
     "gmail",
