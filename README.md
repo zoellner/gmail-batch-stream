@@ -1,6 +1,9 @@
 # Gmail Batch Stream
 A Node.js module to create batch requests for the Gmail REST API and return them as [Highland.js](http://highlandjs.org) streams.
 
+## Looking for maintainer
+Since I'm not actively using this package anymore, I'd appreciate if someone who is using it would take over maintenance.
+
 ## Google API Batch Requests
 The official Google API Node.js Client [google/google-api-nodejs-client](https://github.com/google/google-api-nodejs-client) is missing batch processing. For processing large amounts of email through the Gmail API, batch processing greatly improves the throughput.
 
