@@ -1,6 +1,6 @@
 {
   "name": "gmail-batch-stream",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Streaming interface to Gmail API using batch requests",
   "main": "index.js",
   "dependencies": {
