@@ -6,10 +6,10 @@
   "dependencies": {
     "debug": "^4.1.1",
     "googleapis": "^40.0.0",
-    "highland": "^2.13.4",
+    "highland": "^2.13.5",
     "http-string-parser": "0.0.6",
-    "lodash": "^4.17.11",
-    "query-string": "^6.5.0",
+    "lodash": "^4.17.15",
+    "query-string": "^6.8.2",
     "request": "^2.88.0"
   },
   "scripts": {
@@ -36,7 +36,7 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "eslint": "^5.16.0"
+    "eslint": "^6.2.2"
   },
   "engines": {
     "node": ">=6"
