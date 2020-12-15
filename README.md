@@ -1,3 +1,5 @@
+:warning: Package no longer supported. Maintainer wanted.
+
 # Gmail Batch Stream
 A Node.js module to create batch requests for the Gmail REST API and return them as [Highland.js](http://highlandjs.org) streams.
 
